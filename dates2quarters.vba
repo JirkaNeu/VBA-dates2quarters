@@ -1,7 +1,11 @@
 Sub dates2quarters()
 
-indicator = "yes"
-nSchecks = 76 ' <------------- has to be fixed
+'-----------------------------------------'
+sheet_name = "collection"
+indicator = "release" ' first column
+firstyear = 2023 ' year to start with
+lastyear = 2029 ' year to end with
+'-----------------------------------------'
 
 Dim ix
 
@@ -34,119 +38,102 @@ Columns(13).ColumnWidth = 10 ' M
 Columns(14).ColumnWidth = 10 ' N
 Columns(15).ColumnWidth = 4
 Columns(18).ColumnWidth = 4
-Columns(19).ColumnWidth = 4
-Columns(20).ColumnWidth = 57
-Columns(21).ColumnWidth = 9
-Columns(22).ColumnWidth = 5
 
 'Frame
-    Range("B21:O35").Borders(xlEdgeTop).LineStyle = xlContinuous
-    Range("B21:O35").Borders(xlEdgeRight).LineStyle = xlContinuous
-    Range("B21:O35").Borders(xlEdgeLeft).LineStyle = xlContinuous
-    Range("B21:O35").Borders(xlEdgeBottom).LineStyle = xlContinuous
-Range("F22:F34").Borders(xlEdgeLeft).LineStyle = xlContinuous
-Range("J22:J34").Borders(xlEdgeLeft).LineStyle = xlContinuous
+Range("F6:F18").Borders(xlEdgeLeft).LineStyle = xlContinuous
+Range("J6:J18").Borders(xlEdgeLeft).LineStyle = xlContinuous
 
-Worksheets("quarters").Cells(2, 3).Value = "Date: " & Date & " | " & Time & " Uhr"
+Worksheets("quarters").Cells(2, 3).Value = "Timestamp: " & Date & " | " & Time & " Uhr"
 Worksheets("quarters").Cells(2, 3).Font.Bold = True
 
 Worksheets("quarters").Cells(4, 3).Value = "Indicator (term to count): " & indicator
 
+If Worksheets(sheet_name).FilterMode Then Worksheets(sheet_name).ShowAllData ' reset filter
+Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+nSchecks = Sheets(sheet_name).AutoFilter.Range.Columns(1).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+If Worksheets(sheet_name).FilterMode Then Worksheets(sheet_name).ShowAllData ' reset filter
 
-If Worksheets("collection").FilterMode Then Worksheets("collection").ShowAllData ' reset filter
-
-
-Worksheets("quarters").Cells(22, 3).Value = "Indicator count: "
-Worksheets("quarters").Cells(22, 4).Value = nSchecks
-Worksheets("quarters").Cells(22, 3).Font.Bold = True
-Worksheets("quarters").Cells(22, 4).Font.Bold = True
-
+Worksheets("quarters").Cells(6, 3).Value = "Indicator count: "
+Worksheets("quarters").Cells(6, 4).Value = nSchecks
+Worksheets("quarters").Cells(6, 3).Font.Bold = True
+Worksheets("quarters").Cells(6, 4).Font.Bold = True
 
 '-----------------------------------------------------------------------------------------------------------------'
 '-----------------------------------------------------------------------------------------------------------------'
 
-Worksheets("quarters").Cells(22, 7).Value = "Indicator per "
-Worksheets("quarters").Cells(22, 7).Font.Bold = True
-Worksheets("quarters").Cells(23, 7).Value = "year (n = " & nSchecks & ")"
-Worksheets("quarters").Cells(23, 7).Font.Bold = True
+Worksheets("quarters").Cells(6, 7).Value = "Indicator per "
+Worksheets("quarters").Cells(6, 7).Font.Bold = True
+Worksheets("quarters").Cells(7, 7).Value = "year (n = " & nSchecks & ")"
+Worksheets("quarters").Cells(7, 7).Font.Bold = True
 
-
-Worksheets("collection").EnableAutoFilter = True
-Worksheets("collection").Protect contents:=True, userInterfaceOnly:=True
-
-If Worksheets("collection").FilterMode Then Worksheets("collection").ShowAllData ' reset filter
-
-
-jahr = "2023"
-startdatum = "01/01/" & jahr
-enddatum = "12/31/" & jahr
+Worksheets(sheet_name).EnableAutoFilter = True
+Worksheets(sheet_name).Protect contents:=True, userInterfaceOnly:=True
 
 nSonst = 0
 nCCJSum = 0
 zzz = 0
-For i = 2023 To 2027
+
+For i = firstyear To lastyear
 
 startdatum = "01/01/" & i
 enddatum = "12/31/" & i
 
 
-    With Worksheets("collection")
+    With Worksheets(sheet_name)
         If Not .AutoFilterMode Then .Range("A1").AutoFilter
-        Worksheets("collection").UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+        Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
         If Not .AutoFilterMode Then .Range("B1").AutoFilter
         .Range("N1").AutoFilter Field:=2, Criteria1:=">=" & startdatum, Operator:=xlAnd, Criteria2:="<=" & enddatum
     End With
 
-    nCompJahr = Worksheets("collection").AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+    nCompJahr = Worksheets(sheet_name).AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
     
         If nCompJahr > 0 Then
-            Worksheets("quarters").Cells(25 + zzz, 7).Value = i
-            Worksheets("quarters").Cells(25 + zzz, 8).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zzz, 7).Value = i
+            Worksheets("quarters").Cells(9 + zzz, 8).Value = nCompJahr
             zzz = zzz + 1
             nCCJSum = nCCJSum + nCompJahr ' Sum for unknown
         End If
         
         ' future years are 0
         If nCompJahr = 0 Then
-            Worksheets("quarters").Cells(25 + zzz, 7).Value = i
-            Worksheets("quarters").Cells(25 + zzz, 8).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zzz, 7).Value = i
+            Worksheets("quarters").Cells(9 + zzz, 8).Value = nCompJahr
             zzz = zzz + 1
         End If
 Next
 
-Worksheets("collection").ShowAllData ' reset filter
+Worksheets(sheet_name).ShowAllData ' reset filter
 
 
 ' Unbekannt/Summe Schecks
 nSonst = nSchecks - nCCJSum
-Worksheets("quarters").Cells(25 + zzz, 7).Value = "unknown"
-Worksheets("quarters").Cells(25 + zzz, 8).Value = nSonst
-Worksheets("quarters").Cells(26 + zzz, 7).Value = "Sum"
-    Range(Cells(26 + zzz, 7), Cells(26 + zzz, 8)).Borders(xlEdgeTop).LineStyle = xlContinuous
-Worksheets("quarters").Cells(26 + zzz, 8).Value = nSchecks
-
-
+Worksheets("quarters").Cells(9 + zzz, 7).Value = "unknown"
+Worksheets("quarters").Cells(9 + zzz, 8).Value = nSonst
+Worksheets("quarters").Cells(10 + zzz, 7).Value = "Sum"
+    Range(Cells(10 + zzz, 7), Cells(10 + zzz, 8)).Borders(xlEdgeTop).LineStyle = xlContinuous
+Worksheets("quarters").Cells(10 + zzz, 8).Value = nSchecks
 
 '-----------------------------------------------------------------------------------------------------------------'
 '-----------------------------------------------------------------------------------------------------------------'
 
-Worksheets("quarters").Cells(22, 14).Value = "Indicator per quarter (n = " & nSchecks & ")"
-Worksheets("quarters").Cells(22, 14).Font.Bold = True
-Worksheets("quarters").Cells(22, 14).HorizontalAlignment = xlRight
-Worksheets("quarters").Cells(23, 11).Value = "1st quarter"
-Worksheets("quarters").Cells(23, 11).HorizontalAlignment = xlRight
-Worksheets("quarters").Cells(23, 12).Value = "2nd quarter"
-Worksheets("quarters").Cells(23, 12).HorizontalAlignment = xlRight
-Worksheets("quarters").Cells(23, 13).Value = "3rd quarter"
-Worksheets("quarters").Cells(23, 13).HorizontalAlignment = xlRight
-Worksheets("quarters").Cells(23, 14).Value = "4th quarter"
-Worksheets("quarters").Cells(23, 14).HorizontalAlignment = xlRight
+Worksheets("quarters").Cells(6, 14).Value = "Indicator per quarter (n = " & nSchecks & ")"
+Worksheets("quarters").Cells(6, 14).Font.Bold = True
+Worksheets("quarters").Cells(6, 14).HorizontalAlignment = xlRight
+Worksheets("quarters").Cells(7, 11).Value = "1st quarter"
+Worksheets("quarters").Cells(7, 11).HorizontalAlignment = xlRight
+Worksheets("quarters").Cells(7, 12).Value = "2nd quarter"
+Worksheets("quarters").Cells(7, 12).HorizontalAlignment = xlRight
+Worksheets("quarters").Cells(7, 13).Value = "3rd quarter"
+Worksheets("quarters").Cells(7, 13).HorizontalAlignment = xlRight
+Worksheets("quarters").Cells(7, 14).Value = "4th quarter"
+Worksheets("quarters").Cells(7, 14).HorizontalAlignment = xlRight
 
 
-Worksheets("collection").EnableAutoFilter = True
-Worksheets("collection").Protect contents:=True, userInterfaceOnly:=True
+Worksheets(sheet_name).EnableAutoFilter = True
+Worksheets(sheet_name).Protect contents:=True, userInterfaceOnly:=True
 
-If Worksheets("collection").FilterMode Then Worksheets("collection").ShowAllData ' reset filter
+If Worksheets(sheet_name).FilterMode Then Worksheets(sheet_name).ShowAllData ' reset filter
 
 
 jahr = "2023"
@@ -173,24 +160,24 @@ For i = 2023 To 2027
 startdatum = "01/01/" & i
 enddatum = "03/31/" & i
 
-    With Worksheets("collection")
+    With Worksheets(sheet_name)
         If Not .AutoFilterMode Then .Range("A1").AutoFilter
-        Worksheets("collection").UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+        Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
         If Not .AutoFilterMode Then .Range("B1").AutoFilter
         .Range("N1").AutoFilter Field:=2, Criteria1:=">=" & startdatum, Operator:=xlAnd, Criteria2:="<=" & enddatum
     End With
 
-    nCompJahr = Worksheets("collection").AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+    nCompJahr = Worksheets(sheet_name).AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
     
         If nCompJahr > 0 Then
-            Worksheets("quarters").Cells(25 + zz1, 11).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz1, 11).Value = nCompJahr
             zz1 = zz1 + 1
             nCCJSum = nCCJSum + nCompJahr ' Sum for unknown
         End If
         
         ' future years are 0
         If nCompJahr = 0 Then
-            Worksheets("quarters").Cells(25 + zz1, 11).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz1, 11).Value = nCompJahr
             zz1 = zz1 + 1
         End If
 
@@ -198,24 +185,24 @@ enddatum = "03/31/" & i
 startdatum = "04/01/" & i
 enddatum = "06/30/" & i
 
-    With Worksheets("collection")
+    With Worksheets(sheet_name)
         If Not .AutoFilterMode Then .Range("A1").AutoFilter
-        Worksheets("collection").UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+        Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
         If Not .AutoFilterMode Then .Range("B1").AutoFilter
         .Range("N1").AutoFilter Field:=2, Criteria1:=">=" & startdatum, Operator:=xlAnd, Criteria2:="<=" & enddatum
     End With
 
-    nCompJahr = Worksheets("collection").AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+    nCompJahr = Worksheets(sheet_name).AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
     
         If nCompJahr > 0 Then
-            Worksheets("quarters").Cells(25 + zz2, 12).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz2, 12).Value = nCompJahr
             zz2 = zz2 + 1
             nCCJSum = nCCJSum + nCompJahr ' Sum for unknown
         End If
         
         ' future years are 0
         If nCompJahr = 0 Then
-            Worksheets("quarters").Cells(25 + zz2, 12).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz2, 12).Value = nCompJahr
             zz2 = zz2 + 1
         End If
 
@@ -223,24 +210,24 @@ enddatum = "06/30/" & i
 startdatum = "07/01/" & i
 enddatum = "09/30/" & i
 
-    With Worksheets("collection")
+    With Worksheets(sheet_name)
         If Not .AutoFilterMode Then .Range("A1").AutoFilter
-        Worksheets("collection").UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+        Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
         If Not .AutoFilterMode Then .Range("B1").AutoFilter
         .Range("N1").AutoFilter Field:=2, Criteria1:=">=" & startdatum, Operator:=xlAnd, Criteria2:="<=" & enddatum
     End With
 
-    nCompJahr = Worksheets("collection").AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+    nCompJahr = Worksheets(sheet_name).AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
     
         If nCompJahr > 0 Then
-            Worksheets("quarters").Cells(25 + zz3, 13).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz3, 13).Value = nCompJahr
             zz3 = zz3 + 1
             nCCJSum = nCCJSum + nCompJahr ' Sum for unknown
         End If
         
         ' future years are 0
         If nCompJahr = 0 Then
-            Worksheets("quarters").Cells(25 + zz3, 13).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz3, 13).Value = nCompJahr
             zz3 = zz3 + 1
         End If
 
@@ -248,39 +235,37 @@ enddatum = "09/30/" & i
 startdatum = "10/01/" & i
 enddatum = "12/31/" & i
 
-    With Worksheets("collection")
+    With Worksheets(sheet_name)
         If Not .AutoFilterMode Then .Range("A1").AutoFilter
-        Worksheets("collection").UsedRange.AutoFilter Field:=1, Criteria1:=indicator
+        Worksheets(sheet_name).UsedRange.AutoFilter Field:=1, Criteria1:=indicator
         If Not .AutoFilterMode Then .Range("B1").AutoFilter
         .Range("N1").AutoFilter Field:=2, Criteria1:=">=" & startdatum, Operator:=xlAnd, Criteria2:="<=" & enddatum
     End With
 
-    nCompJahr = Worksheets("collection").AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
+    nCompJahr = Worksheets(sheet_name).AutoFilter.Range.Columns(2).SpecialCells(xlCellTypeVisible).Cells.Count - 1
     
         If nCompJahr > 0 Then
-            Worksheets("quarters").Cells(25 + zz4, 14).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz4, 14).Value = nCompJahr
             zz4 = zz4 + 1
             nCCJSum = nCCJSum + nCompJahr ' Sum for unknown
         End If
         
         ' future years are 0
         If nCompJahr = 0 Then
-            Worksheets("quarters").Cells(25 + zz4, 14).Value = nCompJahr
+            Worksheets("quarters").Cells(9 + zz4, 14).Value = nCompJahr
             zz4 = zz4 + 1
         End If
 
 Next
 
-Worksheets("collection").ShowAllData ' reset filter
-
-
+Worksheets(sheet_name).ShowAllData ' reset filter
 
 
 '-----------------------------------------'
 '-----------------------------------------'
 
-If Worksheets("collection").FilterMode Then Worksheets("collection").ShowAllData ' reset filter
-Worksheets("collection").Unprotect
+If Worksheets(sheet_name).FilterMode Then Worksheets(sheet_name).ShowAllData ' reset filter
+Worksheets(sheet_name).Unprotect
 
 End Sub
 
