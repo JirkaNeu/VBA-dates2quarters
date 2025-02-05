@@ -3,8 +3,8 @@ Sub dates2quarters()
 '-----------------------------------------'
 sheet_name = "collection"
 indicator = "release" ' first column
-col_indic = 1 ' not yet implemented
-col_date = 2 ' not yet implemented
+col_indic = 1 ' not implemented
+col_date = 2 ' not implemented
 firstyear = 2023 ' year to start with
 lastyear = 2029 ' year to end with
 '-----------------------------------------'
